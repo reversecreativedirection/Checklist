@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="P&B Setup">
+<meta name="theme-color" content="#1c1f27">
+<title>Pole & Block Setup</title>
+<style>
+  :root {
+    --bg: #111318;
+    --surface: #1c1f27;
+    --surface2: #252830;
+    --surface3: #2e3240;
+    --border: #353848;
+    --border2: #404560;
+    --text: #e8eaf2;
+    --text-muted: #6b7090;
+    --text-dim: #4a4f6a;
+    --accent: #f0a500;
+    --accent2: #e07b00;
+    --done: #2ecc71;
+    --not-needed: #5a5f7a;
+    --unavailable: #e74c3c;
+    --restock: #e67e22;
+    --sub: 24px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); max-width: 430px; margin: 0 auto; }
+  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+
+  .header { padding: 16px 16px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .app-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+  .app-title { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; }
+  .date-block { text-align: right; }
+  .date-day { font-size: 28px; font-weight: 800; line-height: 1; }
+  .date-rest { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+  .prog-row { display: flex; align-items: center; gap: 10px; }
+  .prog-bg { flex: 1; height: 5px; background: var(--surface3); border-radius: 5px; overflow: hidden; }
+  .prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 5px; transition: width 0.3s; width: 0%; }
+  .prog-txt { font-size: 14px; font-weight: 800; color: var(--accent); min-width: 38px; text-align: right; }
+
+  .legend { display: flex; gap: 10px; padding: 7px 16px; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; scrollbar-width: none; }
+  .legend::-webkit-scrollbar { display: none; }
+  .leg { display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); }
+  .pip { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 14px 16px; -webkit-overflow-scrolling: touch; }
+
+  .sec-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); padding: 14px 2px 6px; }
+
+  .item { display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: 10px; padding: 12px 12px; border: 1.5px solid var(--border); cursor: pointer; user-select: none; -webkit-user-select: none; transition: background 0.12s, border-color 0.12s; margin-bottom: 5px; }
+  .item:active { opacity: 0.7; }
+  .item.sub { margin-left: var(--sub); background: var(--surface2); border-radius: 8px; padding: 9px 12px; }
+  .item.s-done        { border-color: rgba(46,204,113,0.45); background: rgba(46,204,113,0.08); }
+  .item.s-not-needed  { border-color: rgba(90,95,122,0.35); background: rgba(90,95,122,0.06); }
+  .item.s-unavailable { border-color: rgba(231,76,60,0.45); background: rgba(231,76,60,0.08); }
+  .item.s-restock     { border-color: rgba(230,126,34,0.45); background: rgba(230,126,34,0.08); }
+
+  .sbox { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; flex-shrink: 0; background: var(--surface3); border: 1.5px solid var(--border2); color: var(--text-muted); transition: all 0.12s; }
+  .item.sub .sbox { width: 26px; height: 26px; border-radius: 6px; font-size: 13px; }
+  .s-done .sbox        { background: rgba(46,204,113,0.2); border-color: var(--done); color: var(--done); }
+  .s-not-needed .sbox  { background: rgba(90,95,122,0.15); border-color: var(--not-needed); color: var(--not-needed); }
+  .s-unavailable .sbox { background: rgba(231,76,60,0.18); border-color: var(--unavailable); color: var(--unavailable); }
+  .s-restock .sbox     { background: rgba(230,126,34,0.2); border-color: var(--restock); color: var(--restock); }
+
+  .ibody { flex: 1; min-width: 0; }
+  .iname { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .item.sub .iname { font-size: 13px; font-weight: 500; }
+  .inote { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+  .s-not-needed .iname  { color: var(--text-dim); text-decoration: line-through; }
+  .s-unavailable .iname { color: var(--unavailable); }
+  .s-restock .iname     { color: var(--restock); }
+
+  .stag { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; flex-shrink: 0; opacity: 0; }
+  .s-done .stag        { color: var(--done); opacity: 1; }
+  .s-not-needed .stag  { color: var(--not-needed); opacity: 1; }
+  .s-unavailable .stag { color: var(--unavailable); opacity: 1; }
+  .s-restock .stag     { color: var(--restock); opacity: 1; }
+
+  .sub-group { margin-left: var(--sub); border-left: 2px solid var(--border2); padding-left: 8px; margin-bottom: 5px; margin-top: -3px; padding-bottom: 2px; }
+
+  .power-panel { margin-left: var(--sub); margin-top: 3px; margin-bottom: 5px; background: var(--surface2); border-radius: 10px; border: 1.5px solid var(--border2); overflow: hidden; display: none; }
+  .power-panel.open { display: block; }
+  .power-panel-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); padding: 8px 12px 6px; border-bottom: 1px solid var(--border); }
+  .power-opts { display: flex; }
+  .popt { flex: 1; padding: 11px 4px; text-align: center; cursor: pointer; background: transparent; border: none; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-muted); border-right: 1px solid var(--border); transition: all 0.12s; }
+  .popt:last-child { border-right: none; }
+  .popt:active { opacity: 0.6; }
+  .popt.sel-solar    { background: rgba(243,156,18,0.18); color: #f39c12; }
+  .popt.sel-battery  { background: rgba(52,152,219,0.18); color: #3498db; }
+  .popt.sel-dc       { background: rgba(155,89,182,0.18); color: #9b59b6; }
+  .power-subs { display: none; border-top: 1px solid var(--border); padding: 6px 8px; }
+  .power-subs.show { display: block; }
+
+  .ppe-box { background: rgba(231,76,60,0.08); border: 1.5px solid rgba(231,76,60,0.3); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
+  .ppe-title { font-size: 11px; font-weight: 700; color: var(--unavailable); letter-spacing: 0.5px; margin-bottom: 8px; }
+  .ppe-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ppe-chip { background: var(--surface3); border: 1.5px solid var(--border2); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+  .ppe-chip:active { opacity: 0.7; }
+  .ppe-chip.on { background: rgba(46,204,113,0.15); border-color: var(--done); color: var(--done); }
+
+  .boom-box { background: rgba(240,165,0,0.07); border: 1.5px solid rgba(240,165,0,0.3); border-radius: 10px; padding: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .boom-box:active { opacity: 0.7; }
+  .boom-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(240,165,0,0.15); border: 1.5px solid rgba(240,165,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+  .boom-body { flex: 1; }
+  .boom-name { font-size: 14px; font-weight: 700; color: var(--accent); }
+  .boom-note { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+  .boom-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); opacity: 0; }
+  .boom-box.on .boom-icon { background: rgba(46,204,113,0.2); border-color: var(--done); color: var(--done); }
+  .boom-box.on .boom-name { color: var(--done); }
+  .boom-box.on .boom-tag { opacity: 1; color: var(--done); }
+
+  /* EMAIL MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 18px 36px; width: 100%; max-width: 430px; border-top: 1px solid var(--border2); }
+  .modal-title { font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .modal-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+  .modal-section { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .modal-items { background: var(--surface2); border-radius: 10px; border: 1px solid var(--border); padding: 10px 12px; margin-bottom: 14px; min-height: 44px; }
+  .modal-item-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .modal-item-row:last-child { border-bottom: none; }
+  .modal-item-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
+  .badge-restock { background: rgba(230,126,34,0.2); color: var(--restock); }
+  .badge-unavailable { background: rgba(231,76,60,0.2); color: var(--unavailable); }
+  .modal-item-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .modal-empty { font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .modal-notes { width: 100%; background: var(--surface2); border: 1.5px solid var(--border2); border-radius: 10px; padding: 10px 12px; font-family: inherit; font-size: 13px; color: var(--text); resize: none; height: 72px; margin-bottom: 14px; outline: none; }
+  .modal-notes:focus { border-color: var(--accent); }
+  .modal-notes::placeholder { color: var(--text-dim); }
+  .modal-btns { display: flex; gap: 8px; }
+  .modal-btn { flex: 1; height: 46px; border: none; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+  .modal-btn:active { opacity: 0.75; }
+  .modal-cancel { background: var(--surface3); color: var(--text-muted); border: 1.5px solid var(--border2); flex: 0.5; }
+  .modal-send { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; }
+
+  .bottom { padding: 10px 14px 28px; display: flex; gap: 8px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; flex-direction: column; }
+  .bottom-row1 { display: flex; gap: 8px; }
+  .btn { flex: 1; height: 46px; border: none; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+  .btn:active { opacity: 0.75; }
+  .btn-reset { background: var(--surface3); color: var(--text-muted); border: 1.5px solid var(--border2); flex: 0.55; }
+  .btn-done  { background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #111; }
+  .btn-email { width: 100%; height: 46px; border: none; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-email:active { opacity: 0.75; }
+
+  .toast { position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--surface3); color: var(--text); padding: 8px 18px; border-radius: 30px; font-size: 12px; font-weight: 700; opacity: 0; transition: all 0.22s ease; pointer-events: none; z-index: 999; white-space: nowrap; border: 1px solid var(--border2); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-label">Tools & Accessories</div>
+      <div class="app-title">Pole &amp; Block<br>Setup</div>
+    </div>
+    <div class="date-block">
+      <div class="date-day" id="dDay"></div>
+      <div class="date-rest" id="dRest"></div>
+    </div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-bg"><div class="prog-fill" id="pFill"></div></div>
+    <div class="prog-txt" id="pTxt">0%</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="pip" style="background:#2ecc71"></div>Done</div>
+  <div class="leg"><div class="pip" style="background:#5a5f7a"></div>Not Needed</div>
+  <div class="leg"><div class="pip" style="background:#e74c3c"></div>Not Available</div>
+  <div class="leg"><div class="pip" style="background:#e67e22"></div>Restock</div>
+  <div style="margin-left:auto;font-size:9px;color:#4a4f6a;font-weight:700;letter-spacing:0.5px;white-space:nowrap">TAP TO CYCLE</div>
+</div>
+
+<div class="scroll" id="mainList"></div>
+
+<div class="bottom">
+  <div class="bottom-row1">
+    <button class="btn btn-reset" onclick="resetAll()">&#8635; Reset</button>
+    <button class="btn btn-done" onclick="markAllDone()">Mark All Done</button>
+  </div>
+  <button class="btn-email" onclick="openEmailModal()">✉️ Send to Flying Robot</button>
+</div>
+
+<!-- EMAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">✉️ Send to Flying Robot</div>
+    <div class="modal-sub">hello@flyingrobot.com.au — Items flagged for restock or unavailable</div>
+    <div class="modal-section">Items to report</div>
+    <div class="modal-items" id="modalItems"></div>
+    <div class="modal-section">Additional notes</div>
+    <textarea class="modal-notes" id="modalNotes" placeholder="Add any extra notes here..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn modal-send" onclick="sendEmail()">Send Email</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var ST = ['pending','done','not-needed','unavailable','restock'];
+var IC = ['','✓','—','✕','↺'];
+var TG = ['','Done','Not Needed','N/A','Restock'];
+
+var iState = {};
+var ppeOn  = {};
+var pwrChoice = null;
+var boomOn = false;
+
+// Store item names for email lookup
+var itemNames = {};
+
+var PPE = ['Gloves','Safety Boots','PPE Vest','Helmet'];
+
+var SECTIONS = [
+  { lbl: 'Hand Tools', items: [
+    { id:'s1',   name:'13mm Spanner' },
+    { id:'s2',   name:'30mm Spanner' },
+    { id:'s3',   name:'32mm Spanner' },
+    { id:'s_adj',name:'Adjustable Spanner' },
+    { id:'s4',   name:'Side Cutters' },
+    { id:'s_fh', name:'Flat Head Screwdriver' },
+    { id:'s_pl', name:'Pliers' },
+    { id:'s_cb', name:'Mini Crow Bar' },
+    { id:'s_ch', name:'Chisel' },
+    { id:'s_bb', name:'Breaker Bar' },
+    { id:'s_ms', name:'Metal Snips' },
+    { id:'s_sc', name:'Scissors' },
+    { id:'s5',   name:'Cable Ties' },
+    { id:'s6',   name:'Pole Hatch Key', note:'× 2 sizes' },
+  ]},
+  { lbl: 'Impact Guns', items: [
+    { id:'m12', name:'Impact Gun M12', subs:[
+      { id:'m12s1', name:'18mm Socket' }
+    ]},
+    { id:'m18', name:'Impact Gun M18', subs:[
+      { id:'m18s1', name:'30mm Socket' },
+      { id:'m18s2', name:'32mm Socket' }
+    ]}
+  ]},
+  { lbl: 'Belt Holder Set', items: [
+    { id:'bh', name:'Belt Holder Set', subs:[
+      { id:'bh1', name:'7mm Attachment' },
+      { id:'bh2', name:'8mm Attachment' },
+      { id:'bh3', name:'13mm Attachment' },
+      { id:'bh4', name:'5mm Security Bit' },
+      { id:'bh5', name:'Tri-lobe Key' },
+      { id:'bh6', name:'4mm Security Bit', note:'Solar Panel Bit' },
+    ]},
+    { id:'bc', name:'Banding / Clamps', note:'2 sizes — uses 7mm & 8mm from belt holder' },
+  ]},
+  { lbl: 'Hand Tools', items: [
+    { id:'th', name:'T-Handle + 5mm Security Bit', note:'Always used as one unit' },
+  ]},
+  { lbl: 'Consumables & Lubes', items: [
+    { id:'gc', name:'Glass Cleaner + Cloth' },
+    { id:'pt', name:'PTFE Lube Can' },
+    { id:'al', name:'Anti-Seize Lube / Tube' },
+  ]},
+  { lbl: 'Power Source', items: [
+    { id:'ps', name:'Power Source', isPwr: true }
+  ]},
+  { lbl: 'Other Essentials', items: [
+    { id:'sl', name:'Spirit Level' },
+    { id:'bs', name:'Bird Spikes' },
+    { id:'dt', name:'Duct Tape' },
+    { id:'pm', name:'Permanent Marker' },
+  ], hasBoom: true },
+];
+
+var PWR_SUBS = {
+  solar:   [{ id:'pw1', name:'4mm Allen Key', note:'Solar panel mounting' }],
+  battery: [{ id:'pw2', name:'Battery Terminal Cable' }],
+  dc:      [{ id:'pw3', name:'DC Connector Cable' }]
+};
+
+function registerNames(items) {
+  items.forEach(function(item) {
+    if (item.id) itemNames[item.id] = item.name;
+    if (item.subs) registerNames(item.subs);
+  });
+}
+
+function build() {
+  // Register all item names for email
+  SECTIONS.forEach(function(sec) { if (sec.items) registerNames(sec.items); });
+  if (PWR_SUBS.solar)   registerNames(PWR_SUBS.solar);
+  if (PWR_SUBS.battery) registerNames(PWR_SUBS.battery);
+  if (PWR_SUBS.dc)      registerNames(PWR_SUBS.dc);
+  itemNames['ps'] = 'Power Source';
+
+  var el = document.getElementById('mainList');
+  el.innerHTML = '';
+
+  var pLbl = document.createElement('div');
+  pLbl.className = 'sec-label';
+  pLbl.textContent = 'PPE — Before You Start';
+  el.appendChild(pLbl);
+  el.appendChild(buildPPE());
+
+  SECTIONS.forEach(function(sec) {
+    var lbl = document.createElement('div');
+    lbl.className = 'sec-label';
+    lbl.textContent = sec.lbl;
+    el.appendChild(lbl);
+    sec.items.forEach(function(item) {
+      el.appendChild(item.isPwr ? buildPwrItem() : buildItem(item, false));
+    });
+    if (sec.hasBoom) el.appendChild(buildBoom());
+  });
+
+  updateProg();
+}
+
+function buildPPE() {
+  var box = document.createElement('div');
+  box.className = 'ppe-box';
+  var title = document.createElement('div');
+  title.className = 'ppe-title';
+  title.textContent = '⚠️ Confirm all PPE before starting';
+  box.appendChild(title);
+  var chips = document.createElement('div');
+  chips.className = 'ppe-chips';
+  PPE.forEach(function(p) {
+    var c = document.createElement('div');
+    c.className = 'ppe-chip' + (ppeOn[p] ? ' on' : '');
+    c.textContent = (ppeOn[p] ? '✓ ' : '') + p;
+    c.onclick = function() {
+      ppeOn[p] = !ppeOn[p];
+      c.className = 'ppe-chip' + (ppeOn[p] ? ' on' : '');
+      c.textContent = (ppeOn[p] ? '✓ ' : '') + p;
+      updateProg();
+    };
+    chips.appendChild(c);
+  });
+  box.appendChild(chips);
+  return box;
+}
+
+function buildItem(item, isSub) {
+  var wrap = document.createElement('div');
+  var s = iState[item.id] || 0;
+  var div = document.createElement('div');
+  div.className = 'item' + (isSub ? ' sub' : '') + ' s-' + ST[s];
+  div.id = 'i-' + item.id;
+  div.innerHTML =
+    '<div class="sbox">' + IC[s] + '</div>' +
+    '<div class="ibody">' +
+      '<div class="iname">' + item.name + '</div>' +
+      (item.note ? '<div class="inote">' + item.note + '</div>' : '') +
+    '</div>' +
+    '<div class="stag">' + TG[s] + '</div>';
+  div.onclick = function() { cycle(item.id); };
+  wrap.appendChild(div);
+  if (item.subs) {
+    var grp = document.createElement('div');
+    grp.className = 'sub-group';
+    item.subs.forEach(function(sub) { grp.appendChild(buildItem(sub, true)); });
+    wrap.appendChild(grp);
+  }
+  return wrap;
+}
+
+function buildPwrItem() {
+  var wrap = document.createElement('div');
+  var s = iState['ps'] || 0;
+  var div = document.createElement('div');
+  div.className = 'item s-' + ST[s];
+  div.id = 'i-ps';
+  div.innerHTML =
+    '<div class="sbox">' + IC[s] + '</div>' +
+    '<div class="ibody"><div class="iname">Power Source</div><div class="inote">Tap to check, then select type</div></div>' +
+    '<div class="stag">' + TG[s] + '</div>';
+
+  var panel = document.createElement('div');
+  panel.className = 'power-panel' + (((iState['ps']||0) > 0) ? ' open' : '');
+  panel.id = 'pwrPanel';
+
+  div.onclick = function() {
+    cycle('ps');
+    var open = (iState['ps'] || 0) > 0;
+    panel.className = 'power-panel' + (open ? ' open' : '');
+    if (!open) { pwrChoice = null; updatePwrSubs(); }
+  };
+  wrap.appendChild(div);
+
+  var plbl = document.createElement('div');
+  plbl.className = 'power-panel-lbl';
+  plbl.textContent = 'Which power source today?';
+  panel.appendChild(plbl);
+
+  var opts = document.createElement('div');
+  opts.className = 'power-opts';
+  [['solar','☀️ Solar'],['battery','🔋 Battery'],['dc','⚡ DC']].forEach(function(o) {
+    var btn = document.createElement('button');
+    btn.className = 'popt' + (pwrChoice === o[0] ? ' sel-'+o[0] : '');
+    btn.textContent = o[1];
+    btn.setAttribute('data-pwr', o[0]);
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      pwrChoice = o[0];
+      document.querySelectorAll('.popt').forEach(function(b) {
+        b.className = 'popt' + (b.getAttribute('data-pwr') === pwrChoice ? ' sel-'+pwrChoice : '');
+      });
+      updatePwrSubs();
+      updateProg();
+      showToast(o[1].split(' ').slice(1).join(' ') + ' power selected');
+    };
+    opts.appendChild(btn);
+  });
+  panel.appendChild(opts);
+
+  var subs = document.createElement('div');
+  subs.className = 'power-subs';
+  subs.id = 'pwrSubs';
+  panel.appendChild(subs);
+  wrap.appendChild(panel);
+  setTimeout(updatePwrSubs, 0);
+  return wrap;
+}
+
+function buildBoom() {
+  var div = document.createElement('div');
+  div.className = 'boom-box' + (boomOn ? ' on' : '');
+  div.id = 'boomBox';
+  div.innerHTML =
+    '<div class="boom-icon">' + (boomOn ? '✓' : '📦') + '</div>' +
+    '<div class="boom-body">' +
+      '<div class="boom-name">Boom Box</div>' +
+      '<div class="boom-note">Own checklist coming — tap to confirm loaded</div>' +
+    '</div>' +
+    '<div class="boom-tag">' + (boomOn ? 'Confirmed' : '') + '</div>';
+  div.onclick = function() {
+    boomOn = !boomOn;
+    div.className = 'boom-box' + (boomOn ? ' on' : '');
+    div.querySelector('.boom-icon').textContent = boomOn ? '✓' : '📦';
+    div.querySelector('.boom-tag').textContent = boomOn ? 'Confirmed' : '';
+    updateProg();
+  };
+  return div;
+}
+
+function updatePwrSubs() {
+  var el = document.getElementById('pwrSubs');
+  if (!el) return;
+  if (!pwrChoice || !PWR_SUBS[pwrChoice]) { el.className = 'power-subs'; el.innerHTML = ''; return; }
+  el.className = 'power-subs show';
+  el.innerHTML = '';
+  PWR_SUBS[pwrChoice].forEach(function(item) { el.appendChild(buildItem(item, true)); });
+}
+
+function cycle(id) {
+  iState[id] = ((iState[id] || 0) + 1) % ST.length;
+  var s = ST[iState[id]];
+  var el = document.getElementById('i-' + id);
+  if (!el) return;
+  el.className = el.className.replace(/s-\S+/, 's-' + s);
+  el.querySelector('.sbox').textContent = IC[iState[id]];
+  el.querySelector('.stag').textContent = TG[iState[id]];
+  if (iState[id] === 4) showToast('↺ Added to restock list');
+  updateProg();
+}
+
+function getAllIds() {
+  var ids = [];
+  SECTIONS.forEach(function(sec) {
+    sec.items.forEach(function(item) {
+      if (item.isPwr) {
+        ids.push('ps');
+        if (pwrChoice && PWR_SUBS[pwrChoice]) PWR_SUBS[pwrChoice].forEach(function(s){ ids.push(s.id); });
+      } else {
+        ids.push(item.id);
+        if (item.subs) item.subs.forEach(function(s){ ids.push(s.id); });
+      }
+    });
+  });
+  return ids;
+}
+
+function updateProg() {
+  var ids = getAllIds();
+  var done = ids.filter(function(id){ return (iState[id]||0) > 0; }).length;
+  var ppeDone = PPE.filter(function(p){ return ppeOn[p]; }).length;
+  var total = ids.length + PPE.length + 1;
+  var pct = total ? Math.round((done + ppeDone + (boomOn?1:0)) / total * 100) : 0;
+  document.getElementById('pFill').style.width = pct + '%';
+  document.getElementById('pTxt').textContent = pct + '%';
+}
+
+function resetAll() {
+  iState = {}; ppeOn = {}; pwrChoice = null; boomOn = false;
+  build();
+  showToast('Checklist reset');
+}
+
+function markAllDone() {
+  getAllIds().forEach(function(id){ iState[id] = 1; });
+  PPE.forEach(function(p){ ppeOn[p] = true; });
+  boomOn = true;
+  build();
+  updateProg();
+  showToast('All items marked done ✓');
+}
+
+// EMAIL
+function openEmailModal() {
+  var ids = getAllIds();
+  var restockItems = ids.filter(function(id){ return (iState[id]||0) === 4; });
+  var unavailItems = ids.filter(function(id){ return (iState[id]||0) === 3; });
+
+  var container = document.getElementById('modalItems');
+  container.innerHTML = '';
+
+  if (restockItems.length === 0 && unavailItems.length === 0) {
+    var empty = document.createElement('div');
+    empty.className = 'modal-empty';
+    empty.textContent = 'No items flagged yet — mark items as Restock or Not Available first.';
+    container.appendChild(empty);
+  } else {
+    restockItems.forEach(function(id) {
+      var row = document.createElement('div');
+      row.className = 'modal-item-row';
+      row.innerHTML = '<span class="modal-item-badge badge-restock">Restock</span><span class="modal-item-name">' + (itemNames[id] || id) + '</span>';
+      container.appendChild(row);
+    });
+    unavailItems.forEach(function(id) {
+      var row = document.createElement('div');
+      row.className = 'modal-item-row';
+      row.innerHTML = '<span class="modal-item-badge badge-unavailable">Not Available</span><span class="modal-item-name">' + (itemNames[id] || id) + '</span>';
+      container.appendChild(row);
+    });
+  }
+
+  document.getElementById('modalNotes').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function sendEmail() {
+  var ids = getAllIds();
+  var restockItems = ids.filter(function(id){ return (iState[id]||0) === 4; });
+  var unavailItems = ids.filter(function(id){ return (iState[id]||0) === 3; });
+  var notes = document.getElementById('modalNotes').value.trim();
+
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  var subject = 'Pole & Block Setup — Items to Action — ' + now.toLocaleDateString('en-AU');
+
+  var body = 'Hi Flying Robot,\n\nPlease see below items flagged during the Pole & Block Setup checklist on ' + dateStr + '.\n\n';
+
+  if (restockItems.length > 0) {
+    body += '--- RESTOCK REQUIRED ---\n';
+    restockItems.forEach(function(id) { body += '• ' + (itemNames[id] || id) + '\n'; });
+    body += '\n';
+  }
+
+  if (unavailItems.length > 0) {
+    body += '--- NOT AVAILABLE ON SITE ---\n';
+    unavailItems.forEach(function(id) { body += '• ' + (itemNames[id] || id) + '\n'; });
+    body += '\n';
+  }
+
+  if (notes) {
+    body += '--- ADDITIONAL NOTES ---\n' + notes + '\n\n';
+  }
+
+  body += 'Sent from Pole & Block Setup Checklist App.';
+
+  var mailto = 'mailto:hello@flyingrobot.com.au?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+  closeModal();
+  showToast('Opening email app...');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+function setDate() {
+  var now = new Date();
+  document.getElementById('dDay').textContent = now.getDate();
+  document.getElementById('dRest').textContent =
+    now.toLocaleDateString('en-GB',{weekday:'short',month:'short',year:'2-digit'}).toUpperCase();
+}
+
+// Close modal on overlay tap
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+setDate();
+build();
+</script>
+</body>
+</html>
